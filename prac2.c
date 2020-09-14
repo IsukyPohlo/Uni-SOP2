@@ -10,7 +10,6 @@ typedef struct datos {
     int tiempoVuelta;
     int tiempoEspera;
     int colaListo;
-
     struct datos *sig;
 } PROCESO;
 
@@ -18,8 +17,7 @@ typedef struct datos {
 
 /*** Declaración de funciones ***/
 void crearProcesos(PROCESO **inicio, PROCESO **aux);
-void algoritmoFCFS();
-
+void algoritmoFCFS(PROCESO **inicio);
 float calcularPromedioTiempoVuelta(PROCESO **inicio);
 float calcularPromedioTiempoEspera(PROCESO **inicio);
 float calcularTasaSalida(PROCESO **aux);
@@ -27,15 +25,6 @@ float calcularTasaSalida(PROCESO **aux);
 int main(){
     int i = 0;
     float promedioTiempoEspera, promedioTiempoVuelta, promedioTiempoRespuesta; 
-
-float calcularPromedioTiempoVuelta();
-float calcularPromedioTiempoEspera();
-float calcularPromedioTiempoRespuesta();
-float calcularTasaSalida();
-
-int main(){
-    int i = 0;
-
     PROCESO *inicio, *aux;
     inicio = NULL;
 
@@ -84,7 +73,6 @@ void crearProcesos(PROCESO **inicio, PROCESO **aux) {
     }
 }
 
-
 void algoritmoFCFS(PROCESO **inicio) {
     int i = 1;
     PROCESO *proc;
@@ -127,21 +115,4 @@ float calcularPromedioTiempoEspera(PROCESO **inicio) {
 
 float calcularTasaSalida(PROCESO **aux) {
     return (*aux)->tiempoVuelta / numProcesos;
-void algoritmoFCFS() {
-
-}
-
-float calcularPromedioTiempoVuelta() {
-
-}
-
-float calcularPromedioTiempoEspera() {
-
-}
-
-float calcularPromedioTiempoRespuesta() {
-
-}
-
-float calcularTasaSalida() {
 }
