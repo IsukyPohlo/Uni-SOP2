@@ -2,6 +2,8 @@
 #include<stdlib.h>
 #include<unistd.h>
 
+//https://github.com/IsukyPohlo/uni-SOP2
+
 /*** Definción de la estructura del proceso ***/
 typedef struct datos {
     int numProceso; 
@@ -88,12 +90,13 @@ void algoritmoFCFS(PROCESO **inicio) {
 }
 
 float calcularPromedioTiempoVuelta(PROCESO **inicio) {
-    int suma = 0; 
+    int suma = 0, tiempoVuelta = 0;
     PROCESO *proc;
     proc = *inicio;
 
     while(proc != NULL){
-        suma += proc->tiempoVuelta;
+        tiempoVuelta = proc->tiempoVuelta - proc->horaLlegada;
+        suma += tiempoVuelta;
         proc = proc->sig;
     }
 
@@ -101,12 +104,13 @@ float calcularPromedioTiempoVuelta(PROCESO **inicio) {
 }
 
 float calcularPromedioTiempoEspera(PROCESO **inicio) {
-    int suma = 0; 
+    int suma = 0, tiempoEspera = 0; 
     PROCESO *proc;
     proc = *inicio;
 
     while(proc != NULL){
-        suma += proc->tiempoEspera;
+        tiempoEspera = proc->tiempoEspera - proc->horaLlegada;
+        suma += tiempoEspera;
         proc = proc->sig;
     }
 
