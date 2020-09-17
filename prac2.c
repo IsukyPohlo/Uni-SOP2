@@ -2,71 +2,119 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <time.h>
-#include "types.h"
+//#include "types.h"
 
-//https://github.com/IsukyPohlo/uni-SOP2
+/*** Definción de la estructura del proceso ***/
+typedef struct rafaga {
+    int tiempo;
+    struct rafaga *sig;
+} RAFAGA;
+typedef struct datos {
+    int numProceso; 
+    int horaLlegada;
+    RAFAGA *rafagas;
+    struct datos *sig;
+} PROCESO;
+typedef enum {
+  CPU,
+  ES
+} tipoDeRafaga;
+typedef enum {
+  TIPO_PROCESO,
+  TIPO_RAFAGA
+} tipoDeNodo;
 
-#define NUMPROCESOS 20
+#define NUMPROCESOS 5
 
 /*** Declaración de funciones ***/
 PROCESO *crearProcesos(int numProcesos);
 PROCESO *crearProceso(int id);
 RAFAGA *crearRafagas(int num);
 RAFAGA *crearRafaga(tipoDeRafaga tipo);
+PROCESO *push(PROCESO *head, PROCESO *proceso);
+PROCESO *getProcesoEnTiempoLlegada(PROCESO *inicio, int tiempo, PROCESO *cola);
+PROCESO *copiarProceso(PROCESO *proceso);
+int checarListaTermino(PROCESO *inicio);
+int checarProcesoTermino(PROCESO *proceso);
+int enLista(PROCESO *lista, PROCESO *elemento);
+void *pull(void **head, tipoDeNodo tipo);
 void imprimirLista(void *head, tipoDeNodo tipo, int extra);
 void bubbleSort(PROCESO *start);
 void swap(PROCESO *a, PROCESO *b);
-int checarListaTermino(PROCESO *inicio);
-int checarProcesoTermino(PROCESO *proceso);
-PROCESO *push(PROCESO *head, PROCESO *proceso);
-int enLista(PROCESO *lista, PROCESO *elemento);
-PROCESO *getProcesoEnTiempoLlegada(PROCESO *inicio, int tiempo, PROCESO *cola);
-PROCESO *copiarProceso(PROCESO *proceso);
-void *pull(void **head, tipoDeNodo tipo);
 
 int main(){
     srand(time(0));
-    int tiempo = 0, tiempoVuelta=0, tiempoEspera=0; 
-    PROCESO *inicio=NULL, *cola=NULL;
-    inicio = crearProcesos(NUMPROCESOS);
-    bubbleSort(inicio);
+    int tiempoCPU = 0,  tiempoVueltaCPU=0, tiempoEsperaCPU = 0, finalRafagaCPU=0; 
+    int tiempoES = 0, tiempoVueltaES = 0, tiempoEsperaES = 0, finalRafagaES = 0;
+    PROCESO *inicio=NULL, *colaListoCPU=NULL, *colaListoES = NULL, *procesoEnCPU = NULL, *procesoEnES = NULL, *auxProceso = NULL;
+
+    inicio = crearProcesos(NUMPROCESOS); //Se crean los 20 procesos con su tiempo de llegada y ráfagas de CPU y E/S
+    bubbleSort(inicio); //Ordena los procesos por tiempo de llegada
     imprimirLista(inicio, TIPO_PROCESO, 1);
-    PROCESO *procesoEnCPU = NULL;
-    int finalRafaga = 0;
-    while(!checarListaTermino(inicio)) {
+
+    while(!checarListaTermino(inicio)) { //Verficar si todos los procesos han sido atendidos y han terminado
         while(1) {
-            printf("Tiempo: %d\n", tiempo);
-            PROCESO *temp = copiarProceso(getProcesoEnTiempoLlegada(inicio, tiempo, cola));
-            if(temp == NULL) {
+            printf("Tiempo: %d\n", tiempoCPU);
+            PROCESO *temp = copiarProceso(getProcesoEnTiempoLlegada(inicio, tiempoCPU, colaListoCPU)); //Se realiza una copia del proceso que ha llegado  
+            if(temp == NULL) { //Si no hay proceso en el tiempo actual 
                 printf("Break");
                 break;
-            }
+            }  
             printf("Llegada %d, ID: %d", temp->horaLlegada, temp->numProceso);
-            cola = push(cola, temp);
+            colaListoCPU = push(colaListoCPU, temp); //Se añade a la cola de listo el proceso que ha llegado
         }
-        printf("\n\nCola\n");
-        imprimirLista(cola, TIPO_PROCESO, 0);
+        printf("\n\nCola \n"); imprimirLista(colaListoCPU, TIPO_PROCESO, 0);
         char ch;
         scanf(" %c", &ch);
-        if(procesoEnCPU == NULL && cola != NULL) {
-            procesoEnCPU = (PROCESO *)pull((void **)&cola, TIPO_PROCESO);
-            RAFAGA *rafActual = (RAFAGA *)pull((void **)&procesoEnCPU->rafagas, TIPO_RAFAGA);
-            finalRafaga = tiempo + rafActual->tiempo;
+        if(procesoEnCPU == NULL && colaListoCPU != NULL) { //Si el CPU está libre, le asigna el CPU
+            tiempoEsperaCPU += tiempoCPU;
+            procesoEnCPU = (PROCESO *)pull((void **)&colaListoCPU, TIPO_PROCESO); //Lo quita de la cola de listos
+            finalRafagaCPU = tiempoCPU + procesoEnCPU->rafagas->tiempo; //Obtener el tiempo en que termina la ráfaga del proceso que se está ejecutando
         }
-        if(finalRafaga == tiempo && procesoEnCPU != NULL) {
-            printf("Moviendo %d a ES", procesoEnCPU->numProceso);
-            procesoEnCPU = NULL;
+        if(finalRafagaCPU == tiempoCPU && procesoEnCPU != NULL) { //En caso de que haya terminado su ráfaga de CPU     
+            tiempoVueltaCPU += finalRafagaCPU;
+            printf("Moviendo %d a ES", procesoEnCPU->numProceso); //Mueve el procesos a la cola de listos de E/S
+            colaListoES = push(colaListoES, procesoEnCPU); //Mueve el proceso a la cola de listos de E/S
+            procesoEnCPU = NULL; //Libera el CPU
+            pull((void**)&colaListoES->rafagas, TIPO_RAFAGA); //Elimina la ráfaga de CPU
+            /***** Hacer pull de la ráfaga de CPU en lista de procesos ******/
+            printf("\n\nRAFAGAS ES\n"); imprimirLista(colaListoES, TIPO_RAFAGA, 0);
+            if(procesoEnES == NULL && colaListoES != NULL) { //Si está libre la E/S, le asigna
+                tiempoEsperaES += tiempoES;
+                procesoEnES = (PROCESO *)pull((void **)&colaListoES, TIPO_PROCESO); //Lo quita de la cola de E/S
+                finalRafagaES = tiempoES + procesoEnES->rafagas->tiempo; //Obtener el tiempo en que termina la ráfaga del proceso que se está ejecutando       
+            }
+            if(finalRafagaES == tiempoES && procesoEnES != NULL){
+                tiempoVueltaES += finalRafagaES;
+                printf("Ha terminado en E/S");  
+                pull((void**)&colaListoES->rafagas, TIPO_RAFAGA); //Elimina la ráfaga de E/S
+                if(colaListoES->rafagas->sig != NULL){
+                    printf("Se ha encolado a la lista de CPU");
+                    colaListoCPU = push(colaListoCPU, procesoEnES);//push a la cola de listos
+                }
+            }
         }
-        if(procesoEnCPU == NULL && cola != NULL) {
-            procesoEnCPU = (PROCESO *)pull((void **)&cola, TIPO_PROCESO);
-            RAFAGA *rafActual = (RAFAGA *)pull((void **)&procesoEnCPU->rafagas, TIPO_RAFAGA);
-            finalRafaga = tiempo + rafActual->tiempo;
-        }
-        printf("\n\nCola\n");
-        imprimirLista(cola, TIPO_PROCESO, 0);
-        if(procesoEnCPU != NULL) printf("\n\nProceso en CPU: %d Tiempo Llegada: %d Final Rafaga: %d\n", procesoEnCPU->numProceso, procesoEnCPU->horaLlegada, finalRafaga);
-        tiempo++;
+        printf("\n\nCola \n"); imprimirLista(colaListoCPU, TIPO_PROCESO, 0);
+        if(procesoEnCPU != NULL) printf("\n\nProceso en CPU: %d Tiempo Llegada: %d Final Rafaga: %d\n", procesoEnCPU->numProceso, procesoEnCPU->horaLlegada, finalRafagaCPU);
+        tiempoCPU++;
+        tiempoES++;
     }
+
+    if(checarListaTermino(inicio)) {
+        //Cálculos
+        printf("----------- C P U --------------");
+        printf("La Tasa de Salida de CPU es de: %f", finalRafagaCPU / NUMPROCESOS);  
+        printf("El Tiempo promedio de Espera de CPU es de: %f", tiempoEsperaCPU/ NUMPROCESOS);
+        printf("El Tiempo promedio de Vuelta de CPU es de: %f", tiempoVueltaCPU / NUMPROCESOS);
+        printf("El Tiempo promedio de Respuesta de CPU es de: %f", tiempoEsperaCPU / NUMPROCESOS);
+
+        printf("----------- E / S --------------");
+        printf("La Tasa de Salida de E/S es de: %f", finalRafagaES / NUMPROCESOS);  
+        printf("El Tiempo promedio de Espera de E/S es de: %f", tiempoEsperaES / NUMPROCESOS);
+        printf("El Tiempo promedio de Vuelta de E/S es de: %f", tiempoVueltaES / NUMPROCESOS);
+        printf("El Tiempo promedio de Respuesta de E/S es de: %f", tiempoEsperaES / NUMPROCESOS);
+    }
+
 }
 
 void *pull(void **head, tipoDeNodo tipo) {
@@ -77,17 +125,8 @@ void *pull(void **head, tipoDeNodo tipo) {
     } else {
         RAFAGA *tmp = (RAFAGA *)*head;
         *head = tmp->sig;
-        return tmp;
+        //return tmp;
     }
-}
-
-PROCESO *crearProcesos(int numProcesos) {
-    PROCESO *head=NULL, *proceso, *prev;
-    for(int i = 0; i < numProcesos; i++) {
-        proceso = crearProceso(i+1);
-        head = push(head, proceso);
-    }
-    return head;
 }
 
 PROCESO *push(PROCESO *head, PROCESO *proceso) {
@@ -102,6 +141,16 @@ PROCESO *push(PROCESO *head, PROCESO *proceso) {
     }
     return head;
 }
+
+PROCESO *crearProcesos(int numProcesos) {
+    PROCESO *head=NULL, *proceso, *prev;
+    for(int i = 0; i < numProcesos; i++) {
+        proceso = crearProceso(i+1);
+        head = push(head, proceso);
+    }
+    return head;
+}
+
 
 PROCESO *crearProceso(int id) {
     PROCESO *proceso = malloc(sizeof(PROCESO));
@@ -189,19 +238,14 @@ void bubbleSort(PROCESO *start) {
     PROCESO *ptr1; 
     PROCESO *lptr = NULL; 
   
-    /* Checking for empty list */
-    if (start == NULL) 
-        return; 
-  
-    do
-    { 
+    //Checar que la lista esté vacía
+    if (start == NULL)  return; 
+
+    do{ 
         swapped = 0; 
         ptr1 = start; 
-  
-        while (ptr1->sig != lptr) 
-        { 
-            if (ptr1->horaLlegada > ptr1->sig->horaLlegada) 
-            {  
+        while (ptr1->sig != lptr) { 
+            if (ptr1->horaLlegada > ptr1->sig->horaLlegada) {  
                 swap(ptr1, ptr1->sig); 
                 swapped = 1; 
             } 
@@ -213,7 +257,6 @@ void bubbleSort(PROCESO *start) {
 } 
 
 void swap(PROCESO *a, PROCESO *b) { 
-    int colaListo;
     int numProcesoTemp = a->numProceso; 
     int horaLlegadaTemp = a->horaLlegada;
     RAFAGA *rafagasTemp = a->rafagas;
@@ -254,3 +297,4 @@ int enLista(PROCESO *lista, PROCESO *elemento) {
     }
     return 0;
 }
+
