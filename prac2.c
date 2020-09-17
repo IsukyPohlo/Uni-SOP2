@@ -2,27 +2,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <time.h>
-//#include "types.h"
+#include "types.h"
 
-/*** Definción de la estructura del proceso ***/
-typedef struct rafaga {
-    int tiempo;
-    struct rafaga *sig;
-} RAFAGA;
-typedef struct datos {
-    int numProceso; 
-    int horaLlegada;
-    RAFAGA *rafagas;
-    struct datos *sig;
-} PROCESO;
-typedef enum {
-  CPU,
-  ES
-} tipoDeRafaga;
-typedef enum {
-  TIPO_PROCESO,
-  TIPO_RAFAGA
-} tipoDeNodo;
 
 #define NUMPROCESOS 5
 
