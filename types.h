@@ -7,6 +7,11 @@ typedef struct rafaga {
 typedef struct datos {
     int numProceso; 
     int horaLlegada;
+    int horaEntradaSalida;
+    int horaCPU;
+    int fin;
+    int tuvoCPU;
+    RAFAGA *rafActual;
     RAFAGA *rafagas;
     struct datos *sig;
 } PROCESO;
