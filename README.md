@@ -1,4 +1,5 @@
 # Practica 2 - Sistemas Operativos Otoño 2020
+## Realizado por:
 * Libni Chamán Gaytán
 * Simon Green Feldman
 * Irving Leopoldo López Sánchez
