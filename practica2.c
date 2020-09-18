@@ -1,3 +1,13 @@
+/*---------------------------------------------
+|  PRÁCTICA 2 SISTEMAS OPERATIVOS
+|  OTOÑO 2020
+|
+|   PROGRAMA REALIZADO POR:
+|       Libni Chamán Gaytán
+|       Simón Green Feldman
+|       Irving Leopoldo López Sánchez
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -56,7 +66,7 @@ int main(){
     PROCESO *entradaSalida = NULL;
     int finalRafaga = 0;
     while(!checarListaTermino(inicio)) {
-        system("cls");
+        system("clear");
         printf("Tiempo: %d\n", tiempo);
         // Pone en la cola los procesos que llegan
         while(1) {
