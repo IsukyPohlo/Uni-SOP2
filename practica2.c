@@ -13,7 +13,7 @@
 #include <unistd.h>
 #include <time.h>
 #include "types.h"
-#include <windows.h>
+// #include <windows.h>
 
 //https://github.com/IsukyPohlo/uni-SOP2
 
